@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For my Babe 🤍</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Kanit', sans-serif;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar { display: none; }
+        
+        @keyframes float {
+          0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+          50% { opacity: 0.8; }
+          100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes ping-slow {
+             75%, 100% { transform: scale(1.5); opacity: 0; }
+        }
+        .animate-float { animation: float linear infinite; }
+        .animate-fade-in-down { animation: fadeInDown 1s ease-out; }
+        .animate-bounce-slow { animation: bounce-slow 2s infinite; }
+        .animate-ping-slow { animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        .perspective-container { perspective: 1000px; }
+    </style>
+</head>
+<body class="bg-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icons ---
+        const Heart = ({ className, size = 24, fill = "none" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        );
+        const Calendar = ({ className, size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        );
+        const ChevronLeft = ({ className, size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15 18-6-6 6-6"/></svg>
+        );
+        const ChevronRight = ({ className, size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>
+        );
+        const Play = ({ size = 24, fill="currentColor" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="0" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        );
+        const Pause = ({ size = 24, fill="currentColor" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="0" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        );
+        const SkipBack = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+        );
+        const SkipForward = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+        );
+        const GiftIcon = ({ className, size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
+        );
+
+        // --- Main Application ---
+        function App() {
+            const [isOpen, setIsOpen] = useState(false); 
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [daysTogether, setDaysTogether] = useState(0);
+            const audioRef = useRef(null);
+            
+            // --- 🔒 โค้ดส่วนรหัสผ่านใหม่ (Memory Zone) ---
+            const [videoUnlocked, setVideoUnlocked] = useState(false);
+            const [otp, setOtp] = useState(new Array(6).fill("")); 
+            const inputRefs = useRef([]); 
+
+            // ฟังก์ชันจัดการตอนพิมพ์
+            const handleOtpChange = (element, index) => {
+                const newOtp = [...otp];
+                newOtp[index] = element.value.toUpperCase(); 
+                setOtp(newOtp);
+
+                if (element.value && index < 5) {
+                    inputRefs.current[index + 1].focus();
+                }
+
+                const password = newOtp.join("");
+                if (password === "PETONG") {
+                    setVideoUnlocked(true);
+                }
+            };
+
+            const handleKeyDown = (e, index) => {
+                if (e.key === "Backspace") {
+                    if (index > 0 && !otp[index]) {
+                        const newOtp = [...otp];
+                        newOtp[index - 1] = "";
+                        setOtp(newOtp);
+                        inputRefs.current[index - 1].focus();
+                    }
+                }
+            };
+
+            // 🟢 จุดแก้ไขที่ 1: ลิงก์เพลง
+            const musicUrl = "./song.mp3";
+
+            // 🟢 จุดแก้ไขที่ 2: วันเกิด (สำหรับคำนวณอายุ Age)
+            const birthDate = new Date(2002, 11, 22); // 22 Dec 2003
+            const [age, setAge] = useState(0);
+
+            useEffect(() => {
+                const today = new Date();
+                let currentAge = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    currentAge--;
+                }
+                setAge(currentAge);
+            }, []);
+
+            // 🟢 เพิ่มส่วนนี้กลับเข้ามา: วันครบรอบ (สำหรับโชว์ในจดหมาย)
+            // ผมใส่วันที่สมมติไว้ (1 ม.ค. 2022) คุณแก้เลขตรงนี้ได้เลย: (ปี ค.ศ., เดือน-1, วันที่)
+            const startDate = new Date(2022, 0, 1); 
+
+            useEffect(() => {
+                const today = new Date();
+                const diffTime = Math.abs(today - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                setDaysTogether(diffDays);
+            }, []);
+
+            // 🟢 จุดแก้ไขที่ 3: อัลบั้มรูปภาพ
+            const memories = [
+                { id: 1, image: "./IMG_2021.jpg", color: "bg-pink-100" },
+                { id: 2, image: "./IMG_3200.HEIC", color: "bg-blue-100" },
+                { id: 3, image: "./IMG_1715.jpg", color: "bg-orange-100" },
+                { id: 4, image: "./IMG_9316.HEIC", color: "bg-purple-100" },
+                { id: 5, image: "./IMG_1544.jpg", color: "bg-red-100" },
+            ];
+
+            // ฟังก์ชันเปิดกล่องของขวัญ
+            const handleOpenGift = () => {
+                setIsOpen(true);
+                setIsPlaying(true);
+                if (audioRef.current) {
+                    audioRef.current.play().catch(e => console.log("Auto-play prevented"));
+                }
+            };
+
+            const toggleMusic = () => {
+                if (isPlaying) { audioRef.current.pause(); } 
+                else { audioRef.current.play(); }
+                setIsPlaying(!isPlaying);
+            };
+
+            const [activeIndex, setActiveIndex] = useState(0);
+            const [dragStart, setDragStart] = useState(null);
+            const [dragOffset, setDragOffset] = useState(0);
+            const handleNext = () => setActiveIndex((prev) => Math.min(prev + 1, memories.length - 1));
+            const handlePrev = () => setActiveIndex((prev) => Math.max(prev - 1, 0));
+            const handleMouseDown = (e) => setDragStart(e.clientX);
+            const handleMouseMove = (e) => { if (dragStart !== null) setDragOffset(e.clientX - dragStart); };
+            const handleMouseUp = () => {
+                if (dragStart !== null) { if (dragOffset < -50) handleNext(); if (dragOffset > 50) handlePrev(); }
+                setDragStart(null); setDragOffset(0);
+            };
+            const handleTouchStart = (e) => setDragStart(e.touches[0].clientX);
+            const handleTouchMove = (e) => { if (dragStart !== null) setDragOffset(e.touches[0].clientX - dragStart); };
+            const handleTouchEnd = () => {
+                if (dragStart !== null) { if (dragOffset < -50) handleNext(); if (dragOffset > 50) handlePrev(); }
+                setDragStart(null); setDragOffset(0);
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-sky-50 overflow-hidden font-sans text-slate-700 relative selection:bg-pink-200 pb-20">
+                    
+                    <audio ref={audioRef} loop><source src={musicUrl} type="audio/mpeg" /></audio>
+
+                    {/* Floating Hearts BG */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        {[...Array(15)].map((_, i) => (
+                            <div key={i} className="absolute text-pink-300/40 animate-float" style={{left: `${Math.random()*100}%`, top: `${Math.random()*100}%`, fontSize: `${Math.random()*30+10}px`, animationDuration: `${Math.random()*5+5}s`, animationDelay: `${Math.random()*2}s`}}>
+                                <Heart fill="currentColor" />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* ================================================================================== */}
+                    {/* 🟢 หน้าจอก่อนเปิดกล่อง (Welcome Screen) */}
+                    {/* ================================================================================== */}
+                    {!isOpen ? (
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-pink-50/90 backdrop-blur-sm transition-opacity duration-1000">
+                            <button 
+                                onClick={handleOpenGift}
+                                className="group relative"
+                            >
+                                <div className="absolute -inset-4 bg-pink-200 rounded-full opacity-75 animate-ping-slow"></div>
+                                <div className="relative p-8 bg-white rounded-full shadow-2xl animate-bounce-slow hover:scale-110 transition-transform cursor-pointer border-4 border-pink-200">
+                                    <GiftIcon size={64} className="text-pink-500" />
+                                </div>
+                            </button>
+                            <p className="mt-8 text-xl font-bold text-pink-500 animate-pulse tracking-widest">
+                                มีของขวัญจะให้...
+                            </p>
+                            <p className="text-sm text-pink-300 mt-2">แตะที่กล่องเพื่อเปิด</p>
+                        </div>
+                    ) : (
+                        /* ================================================================================== */
+                        /* 🟢 หน้าหลัก (Main Content) */
+                        /* ================================================================================== */
+                        <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex flex-col items-center animate-fade-in-down">
+                            <header className="text-center mb-6 mt-4">
+                                <div className="inline-block p-2 bg-white/60 backdrop-blur-sm rounded-full px-4 mb-2 shadow-sm border border-white/50">
+                                    <span className="text-pink-500 font-bold flex items-center gap-2">
+                                        <Calendar size={16} /> Petong Age: {age} Years Old 🎂🤍
+                                    </span>
+                                </div>
+                                <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 drop-shadow-sm">
+                                    For my Babe
+                                </h1>
+                            </header>
+
+                            {/* Card Swipe Section */}
+                            <div className="w-full max-w-sm h-[420px] relative flex flex-col items-center justify-center mb-8">
+                                <div className="relative w-[280px] h-[380px] perspective-container cursor-grab active:cursor-grabbing touch-none"
+                                    onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
+                                    onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
+                                >
+                                    {memories.map((card, index) => {
+                                        const offset = index - activeIndex;
+                                        const isActive = index === activeIndex;
+                                        if (offset < 0 || offset > 3) return null;
+                                        const rotateZ = offset * 4;
+                                        const translateX = offset * 15;
+                                        const translateY = offset * -5;
+                                        const scale = 1 - (offset * 0.05);
+                                        const zIndex = memories.length - offset;
+                                        const isDragging = isActive && dragOffset !== 0;
+                                        const dragRotate = dragOffset * 0.05;
+
+                                        return (
+                                            <div key={card.id} className={`absolute inset-0 rounded-3xl shadow-2xl border-4 border-white transition-all duration-500 ease-out flex flex-col overflow-hidden ${card.color}`}
+                                                style={{
+                                                    zIndex: zIndex,
+                                                    transform: isDragging ? `translateX(${dragOffset}px) rotate(${dragRotate}deg)` : `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotateZ(${rotateZ}deg)`,
+                                                    opacity: isActive ? 1 : 0.6 + (1 - offset * 0.2),
+                                                    filter: isActive ? 'blur(0px)' : 'blur(1px)',
+                                                    transformOrigin: 'bottom center'
+                                                }}>
+                                                <div className="flex-1 m-0 relative overflow-hidden group bg-white h-full">
+                                                    <img src={card.image} className="w-full h-full object-cover pointer-events-none" />
+                                                    <div className="absolute top-2 right-2 animate-pulse"><Heart className="text-pink-400 fill-pink-200" size={20} /></div>
+                                                </div>
+                                                {!isActive && <div className="absolute inset-0 bg-white/40 z-10" />}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex gap-8">
+                                    <button onClick={handlePrev} disabled={activeIndex === 0} className="p-3 bg-white rounded-full text-pink-500 shadow-md hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"><ChevronLeft size={24} /></button>
+                                    <button onClick={handleNext} disabled={activeIndex === memories.length - 1} className="p-3 bg-pink-500 rounded-full text-white shadow-lg shadow-pink-300 hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"><ChevronRight size={24} /></button>
+                                </div>
+                            </div>
+
+                            {/* ================================================================================== */}
+                            {/* 🟢 Music Player Widget (แก้ชื่อเพลงให้ตรงกับไฟล์) */}
+                            {/* ================================================================================== */}
+                            <div className="w-full max-w-md bg-pink-200 rounded-[35px] p-6 shadow-xl relative overflow-hidden mx-auto mb-8 transform hover:scale-[1.02] transition-transform duration-300">
+                                <div className="flex items-center gap-4 mb-6 relative z-10">
+                                    {/* ส่วนรูปปกอัลบั้ม (แก้ไขเป็นอีโมจิ) */}
+                                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md flex-shrink-0 animate-[spin_10s_linear_infinite] flex items-center justify-center bg-gradient-to-br from-pink-300 to-purple-300" style={{animationPlayState: isPlaying ? 'running' : 'paused'}}>
+                                        {/* ตรงนี้เปลี่ยนอีโมจิได้ตามใจชอบเลยครับ เช่น 🎵, 🎶, 🎸, 🎹 */}
+                                        <span className="text-3xl animate-pulse">🎧</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-slate-800 text-lg leading-tight truncate">You Belong With Me</h3>
+                                        <p className="text-slate-600 text-sm mt-1">Taylor Swift</p>
+                                    </div>
+                                </div>
+
+                                <div className="mb-6 relative z-10 px-1">
+                                    <div className="flex justify-between text-xs text-slate-700 font-mono mb-2 font-bold tracking-widest">
+                                        <span>{isPlaying ? "01:23" : "00:00"}</span>
+                                        <span>03:51</span> {/* แก้เวลาจบเพลงให้ตรง */}
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/50 rounded-full relative overflow-hidden">
+                                        <div className={`absolute top-0 left-0 h-full bg-slate-800 rounded-full transition-all duration-1000 ${isPlaying ? 'w-1/3' : 'w-0'}`}></div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center items-center gap-8 relative z-10">
+                                    <button className="text-slate-600 hover:text-slate-800 transition-colors"><SkipBack size={28} fill="currentColor" /></button>
+                                    <button onClick={toggleMusic} className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-slate-700 hover:scale-105 active:scale-95 transition-all">
+                                        {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
+                                    </button>
+                                    <button className="text-slate-600 hover:text-slate-800 transition-colors"><SkipForward size={28} fill="currentColor" /></button>
+                                </div>
+                            </div>
+
+                            {/* ================================================================================== */}
+                            {/* 🟢 จุดแก้ไขที่ 5: ข้อความจดหมาย */}
+                            {/* ================================================================================== */}
+                            <div className="w-full max-w-md bg-white/60 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50 relative overflow-hidden text-center">
+                                <div className="absolute -right-4 -top-4 text-pink-100"><Heart size={100} fill="currentColor" /></div>
+                                <h2 className="text-2xl font-bold text-slate-800 mb-4 relative z-10">ถึงคนเก่งของเค้าา</h2>
+                                <p className="text-slate-600 leading-relaxed relative z-10">
+                                    Happy birthdays to my babe🤍ขอให้ปีนี้มีรอยยิ้มยะคะ รักเธอมาตลอดเลยยยยไม่ต้องมีเรื่องต้องคิดมากนะ อยู่ข้างๆเธอเสมอเลยนะะ แม้ว่าวันไหนเราจะทะเลาะกันบ้าง ตีกันบ้างงในปีที่ผ่านมา แต่รักเธออเสมอ บางทีดุก็เพราะเป็นห่วงนะะ กินของอ้วนไปด้วยกันตลอดจนหัวหยิกเลยนะคะ 
+                                </p>
+                            </div>
+                            
+                            {/* ================================================================================== */}
+                            {/* 🟢 ส่วน Memory Zone (ดีไซน์ใหม่) */}
+                            {/* ================================================================================== */}
+                            <div className="w-full max-w-md mt-12 mb-24 px-4">
+                                {!videoUnlocked ? (
+                                    // 🔒 หน้าจอ Memory Zone
+                                    <div className="bg-pink-50/80 backdrop-blur-md rounded-[30px] p-8 border-2 border-white shadow-xl text-center relative overflow-hidden">
+                                        <h2 className="text-4xl font-extrabold text-pink-400 mb-2 drop-shadow-sm tracking-wide">
+                                            Secret Zone 📸
+                                        </h2>
+                                        
+                                        <p className="text-pink-300 mb-6 font-medium text-lg">ใส่ชื่อผู้รับของขวัญ</p>
+                                        
+                                        <div className="flex justify-center gap-2 mb-8">
+                                            {otp.map((data, index) => (
+                                                <input
+                                                    key={index}
+                                                    type="text"
+                                                    maxLength="1"
+                                                    ref={el => inputRefs.current[index] = el}
+                                                    value={data}
+                                                    onChange={e => handleOtpChange(e.target, index)}
+                                                    onKeyDown={e => handleKeyDown(e, index)}
+                                                    className="w-10 h-14 md:w-12 md:h-16 rounded-full border-2 border-pink-200 text-center text-xl md:text-2xl font-bold text-pink-500 bg-white focus:border-pink-400 focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all shadow-sm"
+                                                />
+                                            ))}
+                                        </div>
+
+                                        <div className="text-pink-400 font-bold text-lg tracking-wider animate-pulse">
+                                             ลองเดาดูจิ!!!
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // 🔓 หน้าจอวิดีโอ (เมื่อใส่รหัสถูก)
+                                    <div className="bg-black rounded-[30px] overflow-hidden shadow-2xl border-4 border-white animate-fade-in-down relative pt-[177%] mx-auto max-w-sm">
+                                        <iframe 
+                                            className="absolute inset-0 w-full h-full"
+                                            src="https://www.youtube.com/embed/Pz_pANvaDZ8?autoplay=1&loop=1&playlist=Pz_pANvaDZ8" 
+                                            title="Our Memory"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                            allowFullScreen
+                                        ></iframe>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
